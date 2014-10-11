@@ -48,8 +48,16 @@ withInfo opts desc = info (helper <*> opts) $ progDesc desc
 
 getOptions :: IO Options
 getOptions = execParser $ withInfo parseOptions "Write your IP to a file"
+
 run :: Options -> IO ()
-run opts = putStrLn $ path opts
+run opts = do
+  f <- openFile (path opts) WriteMode
+  i <- ip
+  L.hPutStrLn f i
+  hClose f
+
+run' :: Options -> IO ()
+run' opts = undefined
 
 main :: IO ()
-main = run =<< (execParser $ withInfo parseOptions "Write your IP to a file")
+main = getOptions >>= run
