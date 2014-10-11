@@ -1,6 +1,8 @@
 module Main where
 
-import Control.Applicative
+import           Control.Applicative
+import qualified Data.ByteString.Lazy.Char8 as L
+import           Iptf.Ip
 import Options.Applicative (
     Parser
   , ParserInfo
@@ -13,9 +15,8 @@ import Options.Applicative (
   , (<>)
   , info
   , strOption
-  , option
-  , auto
   )
+import           System.IO
 
 data Options = Options { path :: String
                        , url :: String
