@@ -17,10 +17,10 @@ import Options.Applicative (
 
 data Options = Options { path :: String
                        , url :: String
-                       , urlFile :: String} deriving (Show)
+                       } deriving (Show)
 
 parseOptions :: Parser Options
-parseOptions = Options <$> parsePath <*> parseUrl <*> parseUrlFile
+parseOptions = Options <$> parsePath <*> parseUrl
 
 parsePath :: Parser String
 parsePath = strOption $
@@ -33,12 +33,6 @@ parseUrl = strOption $
            short 'u' <>
            long "url" <>
            help "Web url to get your IP from"
-
-parseUrlFile :: Parser String
-parseUrlFile = strOption $
-               short 'U' <>
-               long "url-file" <>
-               help "File with a list of urls to use to get your IP"
 
 withInfo :: Parser a -> String -> ParserInfo a
 withInfo opts desc = info (helper <*> opts) $ progDesc desc
