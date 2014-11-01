@@ -11,6 +11,7 @@ import           Network.HTTP.Conduit
 testUrls :: [String]
 testUrls = [ "http://ipecho.net/plain"
        , "http://icanhazip.com"
+       , "fuzz"
        ]
 
 ip :: IO L.ByteString
@@ -20,10 +21,12 @@ mkRequests :: [String] -> [Either SomeException Request]
 mkRequests urls = map parseUrl urls
 
 asyncIp :: [Request] -> IO L.ByteString
-asyncIp rs  = asyncRequests >>= waitAnyCancel >>= return . snd
-   where
-     asyncRequests = sequence $ map (async . get) rs
-     get req =  liftIO $ fmap responseBody $ withManager (httpLbs req)
+asyncIp rs  = asyncRequests rs >>= waitAnyCancel >>= return . snd
+
+asyncRequests :: [Request] -> IO [Async L.ByteString]
+asyncRequests rs = sequence $ map (async . get) rs
+  where
+    get req =  liftIO $ fmap responseBody $ withManager (httpLbs req)
 
 goodRequests :: [Either SomeException Request] -> [Request]
 goodRequests = foldr go []
