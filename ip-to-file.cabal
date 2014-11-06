@@ -27,7 +27,7 @@ executable ip-to-file
                      , optparse-applicative >= 0.10.0
                      , pathtype >= 0.5.4
                      , resourcet >= 1.1.2.3
-                     , transformers >= 0.4.1.0
+                     , transformers >= 0.3.0.0
                      , attoparsec >= 0.12.1.2
 
   hs-source-dirs:      src
