@@ -7,7 +7,7 @@ import qualified Data.ByteString.Char8 as L
 import           Data.List (intersperse)
 import           Data.Word
 
-data IP = IP Word8 Word8 Word8 Word8 deriving Show
+data IP = IP Word8 Word8 Word8 Word8 deriving (Show, Eq)
 
 parseIP :: Parser IP
 parseIP = do
