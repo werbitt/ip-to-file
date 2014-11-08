@@ -1,19 +1,35 @@
 module Main where
 
+import           Control.Applicative (pure)
+import           Control.Exception
+import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.Lazy.Char8 as L
 import           Iptf.Options
 import           Iptf.Parse
 import           Network.HTTP.Conduit (simpleHttp)
 import           System.IO
 
+
+ipFromFile :: FilePath -> IO (Maybe IP)
+ipFromFile f = handle (const $ return Nothing :: IOError -> IO (Maybe IP)) $
+   B.readFile f  >>= \b -> return $ case getIP b of
+                                     Left _  -> Nothing
+                                     Right i -> Just i
+
+ipFromWeb :: String -> IO (Either String IP)
+ipFromWeb u = simpleHttp u >>= return . getIP . L.toStrict
+
 run :: Options -> IO ()
 run opts = do
-  out <- openFile (path opts) WriteMode
-  response <- simpleHttp $ url opts
-  do case getIP (L.toStrict response) of
-      Left e -> print e
-      Right i -> hPutStrLn out $ showIP i
-  hClose out
+  saved <- ipFromFile $ path opts
+  new   <- ipFromWeb  $ url opts
+  do case new of
+      Left  e -> print e
+      Right i -> if saved == pure i
+                 then return ()
+                 else do
+                   withFile (path opts) WriteMode $ \h ->
+                     hPutStrLn h $ showIP i
 
 main :: IO ()
 main = getOptions >>= run
