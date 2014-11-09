@@ -5,7 +5,7 @@ import           Control.Exception
 import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.Lazy.Char8 as L
 import           Iptf.Options
-import           Iptf.Parse
+import           Iptf.Ip
 import           Network.HTTP.Conduit (simpleHttp)
 import           System.IO
 

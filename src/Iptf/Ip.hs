@@ -1,9 +1,9 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Iptf.Parse where
+module Iptf.Ip where
 
 import           Data.Attoparsec.ByteString.Char8
-import qualified Data.ByteString.Char8 as L
+import qualified Data.ByteString.Char8 as B
 import           Data.List (intersperse)
 import           Data.Word
 
@@ -21,7 +21,7 @@ parseIP = do
   d4 <- decimal
   return $ IP d1 d2 d3 d4
 
-getIP :: L.ByteString -> Either String IP
+getIP :: B.ByteString -> Either String IP
 getIP = parseOnly parseIP
 
 showIP :: IP -> String
