@@ -48,3 +48,10 @@ hostsParser = manyTill recordParser endOfInput >>= return . fromList
 
 feedParser :: Parser a -> T.Text -> Either String a
 feedParser p t = eitherResult . feedEmpty $ parse p t
+ipForHostname :: Hosts -> Hostname -> Maybe IP
+ipForHostname h n = go $ Map.toList h
+  where
+    go [] = Nothing
+    go ((k, v):xs) = if S.member n v
+                     then Just k
+                     else go xs
