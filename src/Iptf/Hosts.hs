@@ -19,12 +19,9 @@ data Record = Record IP [Hostname] deriving (Show)
 readHosts :: FilePath -> IO (Either String Hosts)
 readHosts p = readFile p >>= return . feedParser hostsParser
 
-fromList :: [HostsRecord] -> Hosts
+fromList :: [Record] -> Hosts
 fromList [] = Map.empty
-fromList ((HostsRecord i hs):xs) = Map.union (Map.singleton i (S.fromList hs)) $ fromList xs
-
-ipParser :: Parser Ip
-ipParser = takeTill isHorizontalSpace >>= \i -> return $ Ip i
+fromList ((Record i hs):xs) = Map.union (Map.singleton i (S.fromList hs)) $ fromList xs
 
 skipHorizontalSpace :: Parser ()
 skipHorizontalSpace = skipMany (satisfy isHorizontalSpace)
@@ -41,7 +38,7 @@ recordParser = do
   ip' <- parseIP
   skipHorizontalSpace
   hs <- hostnamesParser
-  return $ HostsRecord ip' hs
+  return $ Record ip' hs
 
 feedEmpty :: Result r -> Result r
 feedEmpty = flip feed T.empty
