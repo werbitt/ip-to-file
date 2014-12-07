@@ -1,6 +1,7 @@
 module Iptf.Options where
 
 import Control.Applicative
+import Iptf.Hosts (Hostname(..))
 import Options.Applicative (
     Parser
   , ParserInfo
@@ -14,19 +15,27 @@ import Options.Applicative (
   , info
   , strOption
   )
+import qualified Data.Text as T
 
 data Options = Options { path :: String
+                       , hostname :: Hostname
                        , url :: String
                        } deriving (Show)
 
 parseOptions :: Parser Options
-parseOptions = Options <$> parsePath <*> parseUrl
+parseOptions = Options <$> parsePath <*> parseHostname <*> parseUrl
 
 parsePath :: Parser String
 parsePath = strOption $
             short 'f' <>
             long "filepath" <>
             help "Filepath to save your IP to"
+
+parseHostname :: Parser Hostname
+parseHostname = fmap (Hostname . T.pack) $ strOption $
+                short 'h' <>
+                long "hostname" <>
+                help "Hostname to use"
 
 parseUrl :: Parser String
 parseUrl = strOption $
