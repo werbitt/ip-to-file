@@ -9,15 +9,14 @@ import           Network.HTTP.Conduit (simpleHttp)
 import           System.IO
 import qualified Data.Text as T
 
-
-ipFromFile :: FilePath -> IO (Maybe IP)
-ipFromFile f = handle (const $ return Nothing :: IOError -> IO (Maybe IP)) $
-   B.readFile f  >>= \b -> return $ case getIP b of
-                                     Left _  -> Nothing
-                                     Right i -> Just i
+ipFromFile :: FilePath -> Hostname -> IO (Maybe IP)
+ipFromFile f n = readHosts f >>= \result ->
+  case result of
+  Left _ -> return Nothing
+  Right hs -> return $ ipForHostname hs n
 
 ipFromWeb :: String -> IO (Either String IP)
-ipFromWeb u = simpleHttp u >>= return . getIP . L.toStrict
+ipFromWeb u = simpleHttp u >>= return . getIP . T.pack . L.unpack
 
 run :: Options -> IO ()
 run opts = do
