@@ -9,11 +9,11 @@ import qualified Data.Set as S
 import qualified Data.Text as T
 import           Data.Text.IO (readFile)
 import           Prelude hiding (readFile, takeWhile)
+import           Iptf.Ip
 
-type Hosts       = Map.Map Ip (S.Set Hostname)
-newtype Ip       = Ip T.Text deriving (Show, Eq, Ord)
+type Hosts       = Map.Map IP (S.Set Hostname)
 newtype Hostname = Hostname T.Text deriving (Show, Eq, Ord)
-data HostsRecord = HostsRecord Ip [Hostname] deriving (Show)
+data Record = Record IP [Hostname] deriving (Show)
 
 
 readHosts :: FilePath -> IO (Either String Hosts)
@@ -36,9 +36,9 @@ hostnameParser = takeTill (\c -> isHorizontalSpace c || isEndOfLine c)
 hostnamesParser :: Parser [Hostname]
 hostnamesParser = manyTill (hostnameParser <* skipHorizontalSpace) endOfLine
 
-recordParser :: Parser HostsRecord
+recordParser :: Parser Record
 recordParser = do
-  ip' <- ipParser
+  ip' <- parseIP
   skipHorizontalSpace
   hs <- hostnamesParser
   return $ HostsRecord ip' hs
