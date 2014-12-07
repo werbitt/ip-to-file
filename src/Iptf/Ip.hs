@@ -2,12 +2,13 @@
 
 module Iptf.Ip where
 
-import           Data.Attoparsec.ByteString.Char8
+import qualified Data.Text as T
+import           Data.Attoparsec.Text
 import qualified Data.ByteString.Char8 as B
 import           Data.List (intersperse)
 import           Data.Word
 
-data IP = IP Word8 Word8 Word8 Word8 deriving (Show, Eq)
+data IP = IP Word8 Word8 Word8 Word8 deriving (Show, Eq, Ord)
 
 parseIP :: Parser IP
 parseIP = do
@@ -21,7 +22,7 @@ parseIP = do
   d4 <- decimal
   return $ IP d1 d2 d3 d4
 
-getIP :: B.ByteString -> Either String IP
+getIP :: T.Text -> Either String IP
 getIP = parseOnly parseIP
 
 showIP :: IP -> String
