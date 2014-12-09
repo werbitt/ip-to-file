@@ -1,11 +1,13 @@
 module Main where
 
 import qualified Data.ByteString.Lazy.Char8 as L
+import qualified Data.Text as T
+import           Data.Text.IO (writeFile)
 import           Iptf.Hosts
 import           Iptf.Ip
 import           Iptf.Options
 import           Network.HTTP.Conduit (simpleHttp)
-import qualified Data.Text as T
+import           Prelude hiding (writeFile)
 
 ipFromWeb :: String -> IO (Either String IP)
 ipFromWeb u = simpleHttp u >>= return . getIP . T.pack . L.unpack
