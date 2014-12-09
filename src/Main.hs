@@ -7,12 +7,6 @@ import           Iptf.Options
 import           Network.HTTP.Conduit (simpleHttp)
 import qualified Data.Text as T
 
-ipFromFile :: FilePath -> Hostname -> IO (Maybe IP)
-ipFromFile f n = readHosts f >>= \result ->
-  case result of
-  Left _ -> return Nothing
-  Right hs -> return $ ipForHostname hs n
-
 ipFromWeb :: String -> IO (Either String IP)
 ipFromWeb u = simpleHttp u >>= return . getIP . T.pack . L.unpack
 
