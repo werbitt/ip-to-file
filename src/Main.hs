@@ -14,15 +14,22 @@ ipFromWeb u = simpleHttp u >>= return . getIP . T.pack . L.unpack
 
 run :: Options -> IO ()
 run opts = do
-  saved <- ipFromFile (path opts) (hostname opts)
-  new   <- ipFromWeb  $ url opts
-  do case new of
-      Left  e -> print e
-      Right i -> if saved == pure i
-                 then return ()
-                 else do
-                   withFile (path opts) WriteMode $ \h ->
-                     hPutStrLn h $ showIP i
+  let name = (hostname opts)
+  tryWebIP <- ipFromWeb (url opts)
+  case tryWebIP of
+   Left e -> putStrLn e
+   Right webIP -> do
+     tryHosts <- readHosts (path opts)
+     case tryHosts of
+      Left e -> putStrLn e
+      Right hosts -> do
+        let tryFileIP = ipForHostname name hosts
+        case tryFileIP of
+         Nothing -> writeFile (path opts) $ toText (update hosts name webIP)
+         Just fileIP  ->
+           if webIP == fileIP
+           then return ()
+           else writeFile (path opts) $ toText (update hosts name webIP)
 
 main :: IO ()
 main = getOptions >>= run
