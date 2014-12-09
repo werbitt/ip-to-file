@@ -1,12 +1,10 @@
 module Main where
 
-import           Control.Applicative (pure)
 import qualified Data.ByteString.Lazy.Char8 as L
 import           Iptf.Hosts
 import           Iptf.Ip
 import           Iptf.Options
 import           Network.HTTP.Conduit (simpleHttp)
-import           System.IO
 import qualified Data.Text as T
 
 ipFromFile :: FilePath -> Hostname -> IO (Maybe IP)
