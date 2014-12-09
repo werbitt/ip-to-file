@@ -6,15 +6,15 @@ import           Control.Applicative
 import           Data.Attoparsec.Text
 import qualified Data.Map.Strict as Map
 import qualified Data.Set as S
+import           Data.Text (Text)
 import qualified Data.Text as T
 import           Data.Text.IO (readFile)
 import           Prelude hiding (readFile, takeWhile)
 import           Iptf.Ip
 
 type Hosts       = Map.Map IP (S.Set Hostname)
-newtype Hostname = Hostname T.Text deriving (Show, Eq, Ord)
+newtype Hostname = Hostname Text deriving (Show, Eq, Ord)
 data Record = Record IP [Hostname] deriving (Show)
-
 
 readHosts :: FilePath -> IO (Either String Hosts)
 readHosts p = readFile p >>= return . feedParser hostsParser
@@ -46,7 +46,7 @@ feedEmpty = flip feed T.empty
 hostsParser :: Parser Hosts
 hostsParser = manyTill recordParser endOfInput >>= return . fromList
 
-feedParser :: Parser a -> T.Text -> Either String a
+feedParser :: Parser a -> Text -> Either String a
 feedParser p t = eitherResult . feedEmpty $ parse p t
 
 ipForHostname :: Hosts -> Hostname -> Maybe IP
