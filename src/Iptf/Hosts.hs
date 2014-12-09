@@ -10,7 +10,7 @@ import           Data.Text (Text)
 import qualified Data.Text as T
 import           Data.Text.IO (readFile)
 import           Prelude hiding (readFile, takeWhile)
-import           Iptf.Ip
+import           Iptf.Ip (IP(..), parseIP, showIP)
 
 type Hosts       = Map.Map IP (S.Set Hostname)
 newtype Hostname = Hostname Text deriving (Show, Eq, Ord)
@@ -18,6 +18,16 @@ data Record = Record IP [Hostname] deriving (Show)
 
 readHosts :: FilePath -> IO (Either String Hosts)
 readHosts p = readFile p >>= return . feedParser hostsParser
+
+toText :: Hosts -> Text
+toText hs = T.unlines $ map entryToText (Map.toList hs)
+
+entryToText :: (IP, S.Set Hostname) -> Text
+entryToText (ip, hs) = T.intercalate (T.singleton '\t') t
+  where
+    t   = ip' : hs'
+    ip' = showIP ip
+    hs' = map (\(Hostname n) -> n) $ S.toList hs
 
 fromList :: [Record] -> Hosts
 fromList [] = Map.empty
