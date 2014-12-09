@@ -66,3 +66,27 @@ ipForHostname n h = go $ Map.toList h
     go ((k, v):xs) = if S.member n v
                      then Just k
                      else go xs
+
+update :: Hosts -> Hostname -> IP -> Hosts
+update hs n ip
+  | hostnameExists hs n && pure ip == ipForHostname n hs = hs
+  | hostnameExists hs n                                  =  add ip n $ remove n hs
+  | otherwise                                            =  add ip n hs
+
+add :: IP -> Hostname -> Hosts -> Hosts
+add ip n hs = Map.insertWith S.union ip (S.singleton n) hs
+
+remove :: Hostname -> Hosts -> Hosts
+remove n hs = case ip of
+  Just ip' ->
+    if S.null $ remainingNames ip'
+    then Map.delete ip' hs
+    else Map.insert ip' (remainingNames ip') hs
+  Nothing -> hs
+  where
+    ip               = ipForHostname n hs
+    remainingNames i = S.delete n $ Map.findWithDefault S.empty i hs
+
+
+hostnameExists :: Hosts -> Hostname -> Bool
+hostnameExists hs n = S.member n $ S.unions (Map.elems hs)
