@@ -1,5 +1,6 @@
 module Main where
 
+import           Control.Applicative
 import qualified Data.ByteString.Lazy.Char8 as L
 import qualified Data.Text as T
 import           Data.Text.IO (writeFile)
@@ -14,22 +15,14 @@ ipFromWeb u = simpleHttp u >>= return . getIP . T.pack . L.unpack
 
 run :: Options -> IO ()
 run opts = do
-  let name = (hostname opts)
   tryWebIP <- ipFromWeb (url opts)
   case tryWebIP of
-   Left e -> putStrLn e
    Right webIP -> do
-     tryHosts <- readHosts (path opts)
-     case tryHosts of
-      Left e -> putStrLn e
-      Right hosts -> do
-        let tryFileIP = ipForHostname name hosts
-        case tryFileIP of
-         Nothing -> writeFile (path opts) $ toText (update hosts name webIP)
-         Just fileIP  ->
-           if webIP == fileIP
-           then return ()
-           else writeFile (path opts) $ toText (update hosts name webIP)
+     hosts <- getHosts (path opts)
+     if pure webIP == ipForHostname (hostname opts) hosts
+     then return ()
+     else writeFile (path opts) $ toText (update hosts (hostname opts) webIP)
+   Left e -> putStrLn e
 
 main :: IO ()
 main = getOptions >>= run
