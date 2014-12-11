@@ -33,8 +33,8 @@ parsePath = strOption $
 
 parseHostname :: Parser Hostname
 parseHostname = fmap (Hostname . T.pack) $ strOption $
-                short 'h' <>
-                long "hostname" <>
+                short 'n' <>
+                long "name" <>
                 help "Hostname to use"
 
 parseUrl :: Parser String
