@@ -11,13 +11,16 @@ import qualified Data.Text as T
 import           Data.Text.IO (readFile)
 import           Prelude hiding (readFile, takeWhile)
 import           Iptf.Ip (IP(..), parseIP, showIP)
+import           Control.Exception
 
 type Hosts       = Map.Map IP (S.Set Hostname)
 newtype Hostname = Hostname Text deriving (Show, Eq, Ord)
 data Record = Record IP [Hostname] deriving (Show)
 
 readHosts :: FilePath -> IO (Either String Hosts)
-readHosts p = readFile p >>= return . feedParser hostsParser
+readHosts p = catch (readFile p >>= return . feedParser hostsParser) handler
+  where handler :: IOException -> IO (Either String Hosts)
+        handler ex  = return $ Left $ show ex
 
 getHosts :: FilePath -> IO Hosts
 getHosts p = readHosts p >>= \hosts ->
