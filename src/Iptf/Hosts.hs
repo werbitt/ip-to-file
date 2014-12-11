@@ -19,6 +19,12 @@ data Record = Record IP [Hostname] deriving (Show)
 readHosts :: FilePath -> IO (Either String Hosts)
 readHosts p = readFile p >>= return . feedParser hostsParser
 
+getHosts :: FilePath -> IO Hosts
+getHosts p = readHosts p >>= \hosts ->
+  case hosts of
+   Left _  -> return Map.empty
+   Right h -> return h
+
 toText :: Hosts -> Text
 toText hs = T.unlines $ map entryToText (Map.toList hs)
 
