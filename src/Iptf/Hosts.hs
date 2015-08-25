@@ -16,17 +16,20 @@ import           Control.Exception
 type Hosts       = Map.Map IP (S.Set Hostname)
 newtype Hostname = Hostname Text deriving (Show, Eq, Ord)
 data Record = Record IP [Hostname] deriving (Show)
+data HostsFileContents = HostsFileContents { pre :: Text
+                                          , content :: Hosts
+                                          , post :: Text } deriving (Show)
 
-readHosts :: FilePath -> IO (Either String Hosts)
-readHosts p = catch (readFile p >>= return . feedParser hostsParser) handler
-  where handler :: IOException -> IO (Either String Hosts)
+readHosts :: FilePath -> IO (Either String HostsFileContents)
+readHosts p = catch (readFile p >>= return . feedParser hostsFileParser) handler
+  where handler :: IOException -> IO (Either String HostsFileContents)
         handler ex  = return $ Left $ show ex
 
 getHosts :: FilePath -> IO Hosts
 getHosts p = readHosts p >>= \hosts ->
   case hosts of
    Left _  -> return Map.empty
-   Right h -> return h
+   Right h -> return $ content h
 
 toText :: Hosts -> Text
 toText hs = T.unlines $ map entryToText (Map.toList hs)
@@ -64,6 +67,20 @@ feedEmpty = flip feed T.empty
 
 hostsParser :: Parser Hosts
 hostsParser = manyTill recordParser endOfInput >>= return . fromList
+
+header :: Text
+header = "#### Iptf Hostnames - start ####"
+
+footer:: Text
+footer = "#### Iptf Hostnames - end   ####"
+
+
+hostsFileParser :: Parser HostsFileContents
+hostsFileParser = do
+  pre' <- manyTill anyChar $ string header
+  content <- manyTill recordParser (string footer)
+  post' <- takeText
+  return $ HostsFileContents (T.pack pre') (fromList content) post'
 
 feedParser :: Parser a -> Text -> Either String a
 feedParser p t = eitherResult . feedEmpty $ parse p t
