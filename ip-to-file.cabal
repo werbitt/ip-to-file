@@ -1,5 +1,5 @@
 name:                ip-to-file
-version:             0.1.0.0
+version:             0.2.0.0
 synopsis:            Command line tool to write your public IP to a file
 description:         Please see README.md
 license:             MIT
