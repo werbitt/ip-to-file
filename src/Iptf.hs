@@ -4,7 +4,6 @@ import           Control.Applicative
 import           Data.Text.IO (writeFile)
 import           Iptf.Hosts
 import           Iptf.Ip
-import           Iptf.Options
 import           Prelude hiding (writeFile)
 
 

@@ -17,7 +17,6 @@ library
   exposed-modules:   Iptf
   other-modules:     Iptf.Hosts
                    , Iptf.Ip
-                   , Iptf.Options
   build-depends:     text >= 1.1.1.3
                    , async >= 2.0.1.6
                    , attoparsec >= 0.12.1.2
@@ -26,7 +25,6 @@ library
                    , containers >= 0.5.5.1
                    , exceptions >= 0.6.1
                    , http-conduit >= 2.1.4.4
-                   , optparse-applicative >= 0.10.0
                    , resourcet >= 1.1.2.3
                    , transformers >= 0.3.0.0
   default-language: Haskell2010
@@ -38,6 +36,8 @@ executable ip-to-file-exe
   build-depends:     base
                    , ip-to-file
   default-language:  Haskell2010
+                      , optparse-applicative >= 0.10.0
+                      , text >= 1.1.1.3
 
 test-suite ip-to-file-test
   type:              exitcode-stdio-1.0
