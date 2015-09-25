@@ -4,6 +4,7 @@ module Iptf.Hosts.Internal where
 
 import           Control.Applicative
 import           Control.Exception
+import           Control.Monad        (liftM)
 import           Data.Attoparsec.Text
 import qualified Data.Map.Strict      as Map
 import           Data.Monoid          ((<>))
@@ -30,7 +31,7 @@ mkHostname :: Text -> Hostname
 mkHostname = Hostname
 
 readHosts :: FilePath -> IO (Either String HostsFileContents)
-readHosts p = catch (readFile p >>= return . feedParser hostsFileParser) handler
+readHosts p = catch (liftM (feedParser hostsFileParser) (readFile p)) handler
   where handler :: IOException -> IO (Either String HostsFileContents)
         handler ex  = return $ Left $ show ex
 
@@ -53,7 +54,7 @@ entryToText (ip, hs) = T.intercalate (T.singleton '\t') t
 
 fromList :: [Record] -> Hosts
 fromList [] = Map.empty
-fromList ((Record i hs):xs) = Map.union (Map.singleton i (S.fromList hs)) $ fromList xs
+fromList (Record i hs:xs) = Map.union (Map.singleton i (S.fromList hs)) $ fromList xs
 
 skipHorizontalSpace :: Parser ()
 skipHorizontalSpace = skipMany (satisfy isHorizontalSpace)
@@ -76,7 +77,7 @@ feedEmpty :: Result r -> Result r
 feedEmpty = flip feed T.empty
 
 hostsParser :: Parser Hosts
-hostsParser = manyTill recordParser endOfInput >>= return . fromList
+hostsParser = liftM fromList $ manyTill recordParser endOfInput
 
 header :: Text
 header = "#### Iptf Hostnames - start ####"
@@ -116,7 +117,7 @@ update hs n ip
   | otherwise                                            =  Changed $ add ip n hs
 
 add :: IP -> Hostname -> Hosts -> Hosts
-add ip n hs = Map.insertWith S.union ip (S.singleton n) hs
+add ip n = Map.insertWith S.union ip (S.singleton n)
 
 remove :: Hostname -> Hosts -> Hosts
 remove n hs = case ip of
