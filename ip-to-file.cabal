@@ -47,7 +47,7 @@ test-suite ip-to-file-test
   type:                 exitcode-stdio-1.0
   hs-source-dirs:       test
   main-is:              Spec.hs
-  other-modules:        Iptf.Internal.Hosts_Test
+  other-modules:        Iptf.Hosts_Test
   build-depends:        base
                       , ip-to-file
                       , HUnit
