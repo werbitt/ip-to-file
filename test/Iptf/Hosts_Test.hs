@@ -13,14 +13,25 @@ import           Test.Tasty
 import           Test.Tasty.HUnit
 import           Test.Tasty.QuickCheck
 
-testHosts :: Test
-testHosts = TestList [getHostsTest]
 
-getHostsTest :: Test
-getHostsTest = TestCase $ assertEqual
-               "One IP and Host"
-               "1.2.3.4\tfoo\n"
-               (hostsToText $ fromList [Record (IP 1 2 3 4) [Hostname "foo"]])
+tests :: TestTree
+tests = testGroup "Tests" [
+  testGroup "Hosts" [
+      testCase "Hosts to text" hostsToTextTest
+      ],
+  testGroup "Hosts File Structure" [
+      testProperty "Don't change pre" prop_pre_unchanged,
+      testProperty "Don't change post" prop_post_unchanged,
+      testProperty "Updating is idempotent" prop_idempotent_add
+      ]
+  ]
+
+hostsToTextTest :: Assertion
+hostsToTextTest = assertEqual
+                  "One IP and Host"
+                  "1.2.3.4\tfoo\n"
+                  (hostsToText $ fromList [Record (IP 1 2 3 4) [Hostname "foo"]])
+
 instance Arbitrary Hostname where
   arbitrary = do
     name <- listOf1 (choose ('a', 'z'))
@@ -43,3 +54,19 @@ instance Arbitrary Text where
 instance Arbitrary HostsFileContents where
   arbitrary = HostsFileContents <$> arbitrary <*> arbitrary <*> arbitrary
 
+
+prop_pre_unchanged :: HostsFileContents -> Hostname -> IP -> Bool
+prop_pre_unchanged hfc name ip = pre hfc == pre (unwrap $ updateHfc hfc ip name)
+  where
+    types = (hfc, name, ip) :: (HostsFileContents, Hostname, IP)
+
+prop_post_unchanged :: HostsFileContents -> Hostname -> IP -> Bool
+prop_post_unchanged hfc name ip = post hfc == post (unwrap $ updateHfc hfc ip name)
+  where
+    types = (hfc, name, ip) :: (HostsFileContents, Hostname, IP)
+
+prop_idempotent_add :: HostsFileContents -> Hostname -> IP -> Bool
+prop_idempotent_add hfc name ip = hfc' == hfc''
+  where
+    hfc' = unwrap $ updateHfc hfc ip name
+    hfc'' = unwrap $ updateHfc hfc' ip name
