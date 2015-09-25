@@ -35,7 +35,7 @@ library
 executable ip-to-file
   hs-source-dirs:       app
   main-is:              Main.hs
-  otherModules:         Iptf.Options
+  other-modules:         Iptf.Options
   ghc-options:          -threaded -rtsopts -with-rtsopts=-N
   build-depends:        base
                       , ip-to-file
