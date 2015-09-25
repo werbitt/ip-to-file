@@ -22,6 +22,10 @@ data HostsFileContents = HostsFileContents { pre    :: Text
                                           , post    :: Text } deriving (Show, Eq)
 data Modifiable a = Same a | Changed a
 
+unwrap :: Modifiable a -> a
+unwrap (Same x)    = x
+unwrap (Changed x) = x
+
 mkHostname :: Text -> Hostname
 mkHostname = Hostname
 
