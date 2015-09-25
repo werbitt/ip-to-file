@@ -37,13 +37,6 @@ readHosts p = catch (readFile p >>= return . feedParser hostsFileParser) handler
 writeHosts :: FilePath -> HostsFileContents -> IO ()
 writeHosts p hosts = writeFile p $ hfcToText hosts
 
-
-getHosts :: FilePath -> IO Hosts
-getHosts p = readHosts p >>= \hosts ->
-  case hosts of
-   Left _  -> return Map.empty
-   Right h -> return $ content h
-
 hfcToText :: HostsFileContents -> Text
 hfcToText (HostsFileContents pre' content' end') =
   pre' <> header <> hostsToText content' <> footer <> end'
