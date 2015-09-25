@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Iptf.Internal.Hosts_Test where
 
+module Iptf.Hosts_Test where
 import           Iptf.Hosts.Internal
 import           Iptf.Ip.Internal
 import           Test.HUnit
