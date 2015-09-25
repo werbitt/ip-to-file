@@ -19,7 +19,7 @@ newtype Hostname = Hostname Text deriving (Show, Eq, Ord)
 data Record = Record IP [Hostname] deriving (Show)
 data HostsFileContents = HostsFileContents { pre    :: Text
                                           , content :: Hosts
-                                          , post    :: Text } deriving (Show)
+                                          , post    :: Text } deriving (Show, Eq)
 data Modifiable a = Same a | Changed a
 
 mkHostname :: Text -> Hostname
