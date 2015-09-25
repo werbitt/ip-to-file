@@ -3,7 +3,9 @@
 module Iptf.Hosts_Test where
 import           Iptf.Hosts.Internal
 import           Iptf.Ip.Internal
-import           Test.HUnit
+import           Test.Tasty
+import           Test.Tasty.HUnit
+import           Test.Tasty.QuickCheck
 
 testHosts :: Test
 testHosts = TestList [getHostsTest]

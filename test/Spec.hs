@@ -1,10 +1,9 @@
 module Main where
 
 import           Iptf
-import           Iptf.Hosts_Test
-import           Test.HUnit
+import           Iptf.Hosts_Test (tests)
+import           Test.Tasty
 
 
-
-main :: IO Counts
-main = runTestTT $ TestList [testHosts]
+main :: IO ()
+main = defaultMain tests
