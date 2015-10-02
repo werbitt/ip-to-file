@@ -21,7 +21,7 @@ data Record = Record IP [Hostname] deriving (Show)
 data HostsFileContents = HostsFileContents { pre    :: Text
                                           , content :: Hosts
                                           , post    :: Text } deriving (Show, Eq)
-data Modifiable a = Same a | Changed a
+data Modifiable a = Same a | Changed a deriving (Show)
 
 unwrap :: Modifiable a -> a
 unwrap (Same x)    = x
