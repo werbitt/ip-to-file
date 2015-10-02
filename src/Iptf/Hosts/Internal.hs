@@ -2,7 +2,7 @@
 
 module Iptf.Hosts.Internal where
 
-import           Control.Applicative
+import           Control.Applicative  (pure, (<*))
 import           Control.Exception
 import           Control.Monad        (liftM)
 import           Data.Attoparsec.Text
