@@ -5,6 +5,8 @@
 module Iptf.Hosts_Test where
 
 import           Control.Applicative   ((<$>), (<*>))
+import qualified Data.Map.Strict       as Map
+import           Data.Maybe            (fromJust)
 import           Data.Monoid           ((<>))
 import           Data.Text             (Text, lines, pack)
 import           Iptf.Hosts.Internal
@@ -17,6 +19,9 @@ import           Test.Tasty.QuickCheck
 tests :: TestTree
 tests = testGroup "Tests" [
   testGroup "Hosts" [
+      testCase "Remove solo host" removeSoloHostTest,
+      testCase "Remove hostname" removeHostTest,
+      testCase "Remove last hostname" removeLastTest,
       testCase "Hosts to text" hostsToTextTest
       ],
   testGroup "Hosts File Structure" [
@@ -27,6 +32,29 @@ tests = testGroup "Tests" [
       testProperty "Updating is idempotent" prop_idempotent_add
       ]
   ]
+
+
+removeSoloHostTest :: Assertion
+removeSoloHostTest = assertEqual "Removing last host for an IP"
+                     (fromList [Record (IP 1 2 3 4) [Hostname "bar"]])
+                     (remove (Hostname "foo")
+                      (fromList [Record (IP 1 1 1 1) [Hostname "foo"],
+                                 Record (IP 1 2 3 4) [Hostname "bar"]]))
+
+
+removeHostTest :: Assertion
+removeHostTest = assertEqual "Remove a hostname"
+                     (fromList [Record (IP 1 2 3 4) [Hostname "bar"]])
+                     (remove (Hostname "foo")
+                      (fromList [Record (IP 1 2 3 4)
+                                 [Hostname "foo", Hostname "bar"]]))
+
+removeLastTest :: Assertion
+removeLastTest = assertEqual "Remove last host"
+                 empty
+                 (remove (Hostname "foo")
+                  (fromList [Record (IP 1 2 3 4) [Hostname "foo"]]))
+
 
 hostsToTextTest :: Assertion
 hostsToTextTest = assertEqual
