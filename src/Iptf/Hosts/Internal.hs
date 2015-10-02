@@ -13,7 +13,8 @@ import           Data.Text            (Text)
 import qualified Data.Text            as T
 import           Data.Text.IO         (readFile, writeFile)
 import           Iptf.Ip.Internal     (IP (..), parseIP, toText)
-import           Prelude              hiding (readFile, takeWhile, writeFile)
+import           Prelude              hiding (null, readFile, takeWhile,
+                                       writeFile)
 
 type Hosts = Map.Map IP (S.Set Hostname)
 newtype Hostname = Hostname Text deriving (Show, Eq, Ord)
@@ -40,9 +41,21 @@ readHosts p = catch (liftM (feedParser hostsFileParser) (readFile p)) handler
 writeHosts :: FilePath -> HostsFileContents -> IO ()
 writeHosts p hosts = writeFile p $ hfcToText hosts
 
+safeLast :: Text -> Maybe Char
+safeLast t
+  | T.null t = Nothing
+  | otherwise = Just (T.last t)
+
+(<<>>) :: Text -> Text -> Text
+(<<>>) t1 t2 = case safeLast t1 of
+  Nothing -> t1 <> t2
+  Just '\n' -> t1 <> t2
+  _ -> t1 <> "\n" <> t2
+
 hfcToText :: HostsFileContents -> Text
-hfcToText (HostsFileContents pre' content' end') =
-  pre' <> header <> hostsToText content' <> footer <> end'
+hfcToText (HostsFileContents pre' content' end')
+  | null content' = pre' <<>> end'
+  | otherwise    = pre' <<>> header <<>>  hostsToText content' <<>> footer <<>> end'
 
 hostsToText :: Hosts -> Text
 hostsToText hs = T.unlines $ map entryToText (Map.toList hs)
