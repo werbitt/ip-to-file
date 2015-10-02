@@ -27,8 +27,10 @@ unwrap :: Modifiable a -> a
 unwrap (Same x)    = x
 unwrap (Changed x) = x
 
-mkHostname :: Text -> Hostname
-mkHostname = Hostname
+mkHostname :: Text -> Maybe Hostname
+mkHostname t
+  | t == ""    = Nothing
+  | otherwise  = Just $ Hostname t
 
 readHosts :: FilePath -> IO (Either String HostsFileContents)
 readHosts p = catch (liftM (feedParser hostsFileParser) (readFile p)) handler
