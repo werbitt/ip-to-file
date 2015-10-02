@@ -57,8 +57,7 @@ instance Arbitrary HostsFileContents where
 
 prop_pre_unchanged :: HostsFileContents -> Hostname -> IP -> Bool
 prop_pre_unchanged hfc name ip = pre hfc == pre (unwrap $ updateHfc hfc ip name)
-  where
-    types = (hfc, name, ip) :: (HostsFileContents, Hostname, IP)
+
 
 prop_post_unchanged :: HostsFileContents -> Hostname -> IP -> Bool
 prop_post_unchanged hfc name ip = post hfc == post (unwrap $ updateHfc hfc ip name)
