@@ -6,13 +6,13 @@ module Iptf.Hosts_Test where
 
 import           Control.Applicative   ((<$>), (<*>))
 import           Data.Monoid           ((<>))
-import           Data.Text             (Text, pack)
+import           Data.Text             (Text, lines, pack)
 import           Iptf.Hosts.Internal
 import           Iptf.Ip.Internal
+import           Prelude               hiding (lines, null)
 import           Test.Tasty
 import           Test.Tasty.HUnit
 import           Test.Tasty.QuickCheck
-
 
 tests :: TestTree
 tests = testGroup "Tests" [
@@ -22,6 +22,8 @@ tests = testGroup "Tests" [
   testGroup "Hosts File Structure" [
       testProperty "Don't change pre" prop_pre_unchanged,
       testProperty "Don't change post" prop_post_unchanged,
+      testProperty "No header for empty content" prop_no_header_for_empty_content,
+      testProperty "Header for content" prop_header_for_content,
       testProperty "Updating is idempotent" prop_idempotent_add
       ]
   ]
@@ -69,3 +71,14 @@ prop_idempotent_add hfc name ip = hfc' == hfc''
   where
     hfc' = unwrap $ updateHfc hfc ip name
     hfc'' = unwrap $ updateHfc hfc' ip name
+
+prop_no_header_for_empty_content :: Text -> Text -> Bool
+prop_no_header_for_empty_content pre' post' = filter (== header) (lines $ hfcToText hfc) == []
+  where
+    hfc = HostsFileContents pre' empty post'
+
+prop_header_for_content :: HostsFileContents -> Property
+prop_header_for_content hfc = withContents hfc ==> length headerLines == 1
+  where
+    headerLines = filter (== header) (lines $ hfcToText hfc)
+    withContents h = not . null $ content h
