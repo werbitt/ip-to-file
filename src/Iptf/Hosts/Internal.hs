@@ -58,14 +58,14 @@ hfcToText (HostsFileContents pre' content' end')
   | otherwise    = pre' <<>> header <<>>  hostsToText content' <<>> footer <<>> end'
 
 hostsToText :: Hosts -> Text
-hostsToText hs = T.unlines $ map entryToText (Map.toList hs)
+hostsToText hs = T.unlines $ map recordToText (toList hs)
 
-entryToText :: (IP, S.Set Hostname) -> Text
-entryToText (ip, hs) = T.intercalate (T.singleton '\t') t
+recordToText :: Record -> Text
+recordToText (Record ip hs) = T.intercalate (T.singleton '\t') t
   where
     t   = ip' : hs'
     ip' = toText ip
-    hs' = map (\(Hostname n) -> n) $ S.toList hs
+    hs' = map (\(Hostname n) -> n) hs
 
 fromList :: [Record] -> Hosts
 fromList [] = Map.empty
