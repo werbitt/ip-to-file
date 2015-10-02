@@ -34,7 +34,7 @@ hostsToTextTest = assertEqual
 
 instance Arbitrary Hostname where
   arbitrary = do
-    name <- listOf1 (choose ('a', 'z'))
+    name <- resize 20 $ listOf1 (choose ('a', 'z'))
     return $ fromJust $ (mkHostname . pack) (name <> ".global")
 
 instance Arbitrary IP where
@@ -43,7 +43,7 @@ instance Arbitrary IP where
     return $  IP a b c d
 
 instance Arbitrary Record where
-  arbitrary = Record <$> arbitrary <*> listOf arbitrary
+  arbitrary = Record <$> arbitrary <*> (resize 10 $ listOf arbitrary)
 
 instance Arbitrary Hosts where
   arbitrary = fromList <$> listOf arbitrary
