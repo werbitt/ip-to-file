@@ -16,12 +16,26 @@ import           Iptf.Ip.Internal     (IP (..), parseIP, toText)
 import           Prelude              hiding (null, readFile, takeWhile,
                                        writeFile)
 
+-- | Hosts is a map from and IP to a set of Hostnames. A Hostname can
+-- only appear once in a Hosts
 newtype Hosts = Hosts (Map.Map IP (S.Set Hostname)) deriving (Show, Eq)
+
+-- | A Hostname cannot be blank
 newtype Hostname = Hostname Text deriving (Show, Eq, Ord)
+
+-- | A Record consists of an IP and a list of Hostnames. It's basically
+-- a reified entry from Hosts
 data Record = Record IP [Hostname] deriving (Show)
+
+-- | HostsFileContents represents an /etc/hosts file. It contains any
+-- text before the ip-to-file section. The ip-to-file section represented
+-- as a Hosts, and any text after the ip-to-file section.
 data HostsFileContents = HostsFileContents { pre    :: Text
                                           , content :: Hosts
                                           , post    :: Text } deriving (Show, Eq)
+
+-- | Modifiable is used to tag whether something has changed or not. This
+-- is used to prevent unneccessary writes to disk.
 data Modifiable a = Same a | Changed a deriving (Show)
 
 unwrap :: Modifiable a -> a
