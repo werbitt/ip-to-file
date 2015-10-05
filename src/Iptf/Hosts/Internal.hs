@@ -146,9 +146,9 @@ new :: IP -> [Hostname] -> Hosts
 new ip ns = Hosts $ Map.singleton ip (S.fromList ns)
 
 remove :: Hostname -> Hosts -> Hosts
-remove n (Hosts hs) = Hosts $ Map.mapMaybe (del n) hs
+remove n (Hosts hs) = Hosts $ Map.mapMaybe prune hs
   where
-    del n ns  = maybeSet $ S.delete n ns
+    prune ns  = maybeSet $ S.delete n ns
     maybeSet s = if S.null s then Nothing else Just s
 
 toList :: Hosts -> [Record]
@@ -158,7 +158,7 @@ toList (Hosts m) = map (\(ip, s) -> Record ip (S.toList s)) entries
 
 fromList :: [Record] -> Hosts
 fromList []               = empty
-fromList (Record i []:xs) = fromList xs
+fromList (Record _ []:xs) = fromList xs
 fromList (Record i hs:xs) = new i hs `union` fromList xs
 
 fromList' :: [Record] -> Hosts
