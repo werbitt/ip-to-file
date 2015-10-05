@@ -4,7 +4,7 @@ module Iptf.Hosts.Internal where
 
 import           Control.Applicative  (pure, (<*))
 import           Control.Exception
-import           Control.Monad        (liftM, liftM2)
+import           Control.Monad        (liftM)
 import           Data.Attoparsec.Text
 import qualified Data.Map.Strict      as Map
 import           Data.Monoid          ((<>))
