@@ -38,10 +38,6 @@ data HostsFileContents = HostsFileContents { pre    :: Text
 -- is used to prevent unneccessary writes to disk.
 data Modifiable a = Same a | Changed a deriving (Show)
 
-unwrap :: Modifiable a -> a
-unwrap (Same x)    = x
-unwrap (Changed x) = x
-
 mkHostname :: Text -> Maybe Hostname
 mkHostname t
   | t == ""    = Nothing
