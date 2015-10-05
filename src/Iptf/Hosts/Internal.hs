@@ -4,7 +4,7 @@ module Iptf.Hosts.Internal where
 
 import           Control.Applicative  (pure, (<*))
 import           Control.Exception
-import           Control.Monad        (liftM)
+import           Control.Monad        (liftM, liftM2)
 import           Data.Attoparsec.Text
 import qualified Data.Map.Strict      as Map
 import           Data.Monoid          ((<>))
@@ -16,7 +16,7 @@ import           Iptf.Ip.Internal     (IP (..), parseIP, toText)
 import           Prelude              hiding (null, readFile, takeWhile,
                                        writeFile)
 
-type Hosts = Map.Map IP (S.Set Hostname)
+newtype Hosts = Hosts (Map.Map IP (S.Set Hostname)) deriving (Show, Eq)
 newtype Hostname = Hostname Text deriving (Show, Eq, Ord)
 data Record = Record IP [Hostname] deriving (Show)
 data HostsFileContents = HostsFileContents { pre    :: Text
@@ -67,9 +67,6 @@ recordToText (Record ip hs) = T.intercalate (T.singleton '\t') t
     ip' = toText ip
     hs' = map (\(Hostname n) -> n) hs
 
-fromList :: [Record] -> Hosts
-fromList [] = Map.empty
-fromList (Record i hs:xs) = Map.union (Map.singleton i (S.fromList hs)) $ fromList xs
 
 skipHorizontalSpace :: Parser ()
 skipHorizontalSpace = skipMany (satisfy isHorizontalSpace)
@@ -112,7 +109,7 @@ feedParser :: Parser a -> Text -> Either String a
 feedParser p t = eitherResult . feedEmpty $ parse p t
 
 ipForHostname :: Hostname -> Hosts -> Maybe IP
-ipForHostname n h = go $ Map.toList h
+ipForHostname n (Hosts h) = go $ Map.toList h
   where
     go [] = Nothing
     go ((k, v):xs) = if S.member n v
@@ -128,23 +125,50 @@ updateHfc (HostsFileContents pre' content' end') ip name =
 update :: Hosts -> Hostname -> IP -> Modifiable Hosts
 update hs n ip
   | hostnameExists hs n && pure ip == ipForHostname n hs = Same hs
-  | hostnameExists hs n                                  =  Changed . add ip n $ remove n hs
-  | otherwise                                            =  Changed $ add ip n hs
+  | hostnameExists hs n                                  =  Changed . add ip [n] $ remove n hs
+  | otherwise                                            =  Changed $ add ip [n] hs
 
-add :: IP -> Hostname -> Hosts -> Hosts
-add ip n = Map.insertWith S.union ip (S.singleton n)
+empty :: Hosts
+empty = Hosts  Map.empty
+
+union :: Hosts -> Hosts -> Hosts
+union (Hosts h1) h2 = Hosts $ Map.union h1 h2'
+  where
+    (Hosts h2') = foldr remove h2 ns1
+    ns1         = S.toList . S.unions $ Map.elems h1
+
+add :: IP -> [Hostname] -> Hosts -> Hosts
+add ip ns hs = Hosts $ Map.insertWith S.union ip (S.fromList ns) hs'
+  where
+    (Hosts hs') = foldr remove hs ns
+
+new :: IP -> [Hostname] -> Hosts
+new ip ns = Hosts $ Map.singleton ip (S.fromList ns)
 
 remove :: Hostname -> Hosts -> Hosts
-remove n hs = case ip of
-  Just ip' ->
-    if S.null $ remainingNames ip'
-    then Map.delete ip' hs
-    else Map.insert ip' (remainingNames ip') hs
-  Nothing -> hs
+remove n (Hosts hs) = Hosts $ Map.mapMaybe (del n) hs
   where
-    ip               = ipForHostname n hs
-    remainingNames i = S.delete n $ Map.findWithDefault S.empty i hs
+    del n ns  = maybeSet $ S.delete n ns
+    maybeSet s = if S.null s then Nothing else Just s
 
+toList :: Hosts -> [Record]
+toList (Hosts m) = map (\(ip, s) -> Record ip (S.toList s)) entries
+  where
+    entries = Map.toList m
+
+fromList :: [Record] -> Hosts
+fromList []               = empty
+fromList (Record i []:xs) = fromList xs
+fromList (Record i hs:xs) = new i hs `union` fromList xs
+
+fromList' :: [Record] -> Hosts
+fromList' = foldr addRecord empty
+  where
+    addRecord (Record _ []) = id
+    addRecord (Record ip ns) = add ip ns
+
+null :: Hosts -> Bool
+null (Hosts h) = Map.null h
 
 hostnameExists :: Hosts -> Hostname -> Bool
-hostnameExists hs n = S.member n $ S.unions (Map.elems hs)
+hostnameExists (Hosts hs) n = S.member n $ S.unions (Map.elems hs)
