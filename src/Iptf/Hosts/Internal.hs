@@ -38,8 +38,10 @@ data HostsFileContents = HostsFileContents { pre    :: Text
 -- is used to prevent unneccessary writes to disk.
 data Modifiable a = Same a | Changed a deriving (Show)
 
-mkHostname :: Text -> Maybe Hostname
-mkHostname t
+
+-- | Smart constructor for Hostname, doesn't allow blanks.
+hostname :: Text -> Maybe Hostname
+hostname t
   | t == ""    = Nothing
   | otherwise  = Just $ Hostname t
 

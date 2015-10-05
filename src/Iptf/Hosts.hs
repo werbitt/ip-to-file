@@ -2,7 +2,7 @@ module Iptf.Hosts
        (
          updateHostsFile
        , Hostname
-       , mkHostname
+       , hostname
        ) where
 
 import           Iptf.Hosts.Internal
