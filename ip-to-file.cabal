@@ -17,6 +17,7 @@ library
   exposed-modules:      Iptf
                       , Iptf.Hosts
                       , Iptf.Hosts.Internal
+                      , Iptf.Hosts.IO
                       , Iptf.Ip
                       , Iptf.Ip.Internal
   build-depends:        text >= 1.1.1.3

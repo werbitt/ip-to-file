@@ -10,6 +10,7 @@ import           Data.Maybe            (fromJust)
 import           Data.Monoid           ((<>))
 import           Data.Text             (Text, lines, pack)
 import           Iptf.Hosts.Internal
+import           Iptf.Hosts.IO         (header, hfcToText, hostsToText)
 import           Iptf.Ip.Internal
 import           Prelude               hiding (lines, null)
 import           Test.Tasty
@@ -65,7 +66,7 @@ hostsToTextTest = assertEqual
 instance Arbitrary Hostname where
   arbitrary = do
     name <- resize 10 $ listOf1 (choose ('a', 'z'))
-    return $ fromJust $ mkHostname (pack name <> ".global")
+    return $ fromJust $ hostname (pack name <> ".global")
 
 instance Arbitrary IP where
   arbitrary = do
@@ -84,6 +85,9 @@ instance Arbitrary Text where
 instance Arbitrary HostsFileContents where
   arbitrary = HostsFileContents <$> arbitrary <*> arbitrary <*> arbitrary
 
+unwrap :: Modifiable a -> a
+unwrap (Same x)    = x
+unwrap (Changed x) = x
 
 prop_pre_unchanged :: HostsFileContents -> Hostname -> IP -> Bool
 prop_pre_unchanged hfc name ip = pre hfc == pre (unwrap $ updateHfc hfc ip name)

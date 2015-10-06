@@ -5,8 +5,10 @@ module Iptf.Hosts
        , hostname
        ) where
 
-import           Iptf.Hosts.Internal
-import           Iptf.Ip.Internal
+import           Iptf.Hosts.Internal (Hostname, Modifiable (..), hostname,
+                                      updateHfc)
+import           Iptf.Hosts.IO       (readHosts, writeHosts)
+import           Iptf.Ip.Internal    (IP)
 
 updateHostsFile :: IP -> Hostname -> FilePath -> IO ()
 updateHostsFile ip name file = do

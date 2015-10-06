@@ -2,19 +2,12 @@
 
 module Iptf.Hosts.Internal where
 
-import           Control.Applicative  (pure, (<*))
-import           Control.Exception
-import           Control.Monad        (liftM)
-import           Data.Attoparsec.Text
-import qualified Data.Map.Strict      as Map
-import           Data.Monoid          ((<>))
-import qualified Data.Set             as S
-import           Data.Text            (Text)
-import qualified Data.Text            as T
-import           Data.Text.IO         (readFile, writeFile)
-import           Iptf.Ip.Internal     (IP (..), parseIP, toText)
-import           Prelude              hiding (null, readFile, takeWhile,
-                                       writeFile)
+import           Control.Applicative (pure)
+import qualified Data.Map.Strict     as Map
+import qualified Data.Set            as S
+import           Data.Text           (Text)
+import           Iptf.Ip.Internal    (IP)
+
 
 -- | Hosts is a map from and IP to a set of Hostnames. A Hostname can
 -- only appear once in a Hosts
@@ -45,80 +38,6 @@ hostname t
   | t == ""    = Nothing
   | otherwise  = Just $ Hostname t
 
-readHosts :: FilePath -> IO (Either String HostsFileContents)
-readHosts p = catch (liftM (feedParser hostsFileParser) (readFile p)) handler
-  where handler :: IOException -> IO (Either String HostsFileContents)
-        handler ex  = return $ Left $ show ex
-
-writeHosts :: FilePath -> HostsFileContents -> IO ()
-writeHosts p hosts = writeFile p $ hfcToText hosts
-
-safeLast :: Text -> Maybe Char
-safeLast t
-  | T.null t = Nothing
-  | otherwise = Just (T.last t)
-
-(<<>>) :: Text -> Text -> Text
-(<<>>) t1 t2 = case safeLast t1 of
-  Nothing -> t1 <> t2
-  Just '\n' -> t1 <> t2
-  _ -> t1 <> "\n" <> t2
-
-hfcToText :: HostsFileContents -> Text
-hfcToText (HostsFileContents pre' content' end')
-  | null content' = pre' <<>> end'
-  | otherwise    = pre' <<>> header <<>>  hostsToText content' <<>> footer <<>> end'
-
-hostsToText :: Hosts -> Text
-hostsToText hs = T.unlines $ map recordToText (toList hs)
-
-recordToText :: Record -> Text
-recordToText (Record ip hs) = T.intercalate (T.singleton '\t') t
-  where
-    t   = ip' : hs'
-    ip' = toText ip
-    hs' = map (\(Hostname n) -> n) hs
-
-
-skipHorizontalSpace :: Parser ()
-skipHorizontalSpace = skipMany (satisfy isHorizontalSpace)
-
-hostnameParser :: Parser Hostname
-hostnameParser = takeTill (\c -> isHorizontalSpace c || isEndOfLine c)
-                 >>= \h -> return $ Hostname h
-
-hostnamesParser :: Parser [Hostname]
-hostnamesParser = manyTill (hostnameParser <* skipHorizontalSpace) endOfLine
-
-recordParser :: Parser Record
-recordParser = do
-  ip' <- parseIP
-  skipHorizontalSpace
-  hs <- hostnamesParser
-  return $ Record ip' hs
-
-feedEmpty :: Result r -> Result r
-feedEmpty = flip feed T.empty
-
-hostsParser :: Parser Hosts
-hostsParser = liftM fromList $ manyTill recordParser endOfInput
-
-header :: Text
-header = "#### Iptf Hostnames - start ####"
-
-footer:: Text
-footer = "#### Iptf Hostnames - end   ####"
-
-
-hostsFileParser :: Parser HostsFileContents
-hostsFileParser = do
-  pre' <- manyTill anyChar $ string header
-  content <- manyTill recordParser (string footer)
-  post' <- takeText
-  return $ HostsFileContents (T.pack pre') (fromList content) post'
-
-feedParser :: Parser a -> Text -> Either String a
-feedParser p t = eitherResult . feedEmpty $ parse p t
 
 ipForHostname :: Hostname -> Hosts -> Maybe IP
 ipForHostname n (Hosts h) = go $ Map.toList h
