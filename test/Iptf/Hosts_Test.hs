@@ -10,7 +10,7 @@ import           Data.Maybe            (fromJust)
 import           Data.Monoid           ((<>))
 import           Data.Text             (Text, lines, pack)
 import           Iptf.Hosts.Internal
-import           Iptf.Hosts.IO         (header, hfcToText, hostsToText)
+import           Iptf.Hosts.IO         (header, hostsFileToText, hostsToText)
 import           Iptf.Ip.Internal
 import           Prelude               hiding (lines, null)
 import           Test.Tasty
@@ -82,35 +82,35 @@ instance Arbitrary Hosts where
 instance Arbitrary Text where
   arbitrary = pack <$> arbitrary
 
-instance Arbitrary HostsFileContents where
-  arbitrary = HostsFileContents <$> arbitrary <*> arbitrary <*> arbitrary
+instance Arbitrary HostsFile where
+  arbitrary = HostsFile <$> arbitrary <*> arbitrary <*> arbitrary
 
 unwrap :: Modifiable a -> a
 unwrap (Same x)    = x
 unwrap (Changed x) = x
 
-prop_pre_unchanged :: HostsFileContents -> Hostname -> IP -> Bool
-prop_pre_unchanged hfc name ip = pre hfc == pre (unwrap $ updateHfc hfc ip name)
+prop_pre_unchanged :: HostsFile -> Hostname -> IP -> Bool
+prop_pre_unchanged hf name ip = pre hf == pre (unwrap $ updateHostsFile hf ip name)
 
 
-prop_post_unchanged :: HostsFileContents -> Hostname -> IP -> Bool
-prop_post_unchanged hfc name ip = post hfc == post (unwrap $ updateHfc hfc ip name)
+prop_post_unchanged :: HostsFile -> Hostname -> IP -> Bool
+prop_post_unchanged hf name ip = post hf == post (unwrap $ updateHostsFile hf ip name)
   where
-    types = (hfc, name, ip) :: (HostsFileContents, Hostname, IP)
+    types = (hf, name, ip) :: (HostsFile, Hostname, IP)
 
-prop_idempotent_add :: HostsFileContents -> Hostname -> IP -> Bool
-prop_idempotent_add hfc name ip = hfc' == hfc''
+prop_idempotent_add :: HostsFile -> Hostname -> IP -> Bool
+prop_idempotent_add hf name ip = hf' == hf''
   where
-    hfc' = unwrap $ updateHfc hfc ip name
-    hfc'' = unwrap $ updateHfc hfc' ip name
+    hf' = unwrap $ updateHostsFile hf ip name
+    hf'' = unwrap $ updateHostsFile hf' ip name
 
 prop_no_header_for_empty_content :: Text -> Text -> Bool
-prop_no_header_for_empty_content pre' post' = filter (== header) (lines $ hfcToText hfc) == []
+prop_no_header_for_empty_content pre' post' = filter (== header) (lines $ hostsFileToText hf) == []
   where
-    hfc = HostsFileContents pre' empty post'
+    hf = HostsFile pre' empty post'
 
-prop_header_for_content :: HostsFileContents -> Property
-prop_header_for_content hfc = withContents hfc ==> length headerLines == 1
+prop_header_for_content :: HostsFile -> Property
+prop_header_for_content hf = withHosts hf ==> length headerLines == 1
   where
-    headerLines = filter (== header) (lines $ hfcToText hfc)
-    withContents h = not . null $ content h
+    headerLines = filter (== header) (lines $ hostsFileToText hf)
+    withhosts h = not . null $ hosts h

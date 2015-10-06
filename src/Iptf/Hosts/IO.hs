@@ -14,21 +14,19 @@ import           Data.Monoid          ((<>))
 import           Data.Text            (Text)
 import qualified Data.Text            as T
 import           Data.Text.IO         (readFile, writeFile)
-import           Iptf.Hosts.Internal  (Hostname (..), Hosts,
-                                       HostsFileContents (..), Record (..),
-                                       fromList, null, toList)
+import           Iptf.Hosts.Internal  (Hostname (..), Hosts, HostsFile (..),
+                                       Record (..), fromList, null, toList)
 import           Iptf.Ip              (toText)
 import           Iptf.Ip.Internal     (parseIP)
 import           Prelude              hiding (null, readFile, writeFile)
 
-readHosts :: FilePath -> IO (Either String HostsFileContents)
+readHosts :: FilePath -> IO (Either String HostsFile)
 readHosts p = catch (liftM (feedParser hostsFileParser) (readFile p)) handler
-  where handler :: IOException -> IO (Either String HostsFileContents)
+  where handler :: IOException -> IO (Either String HostsFile)
         handler ex  = return $ Left $ show ex
 
-writeHosts :: FilePath -> HostsFileContents -> IO ()
-writeHosts p hosts = writeFile p $ hfcToText hosts
-
+writeHosts :: FilePath -> HostsFile -> IO ()
+writeHosts p = writeFile p . hostsFileToText
 
 safeLast :: Text -> Maybe Char
 safeLast t
@@ -41,10 +39,10 @@ safeLast t
   Just '\n' -> t1 <> t2
   _ -> t1 <> "\n" <> t2
 
-hfcToText :: HostsFileContents -> Text
-hfcToText (HostsFileContents pre' content' end')
-  | null content' = pre' <<>> end'
-  | otherwise    = pre' <<>> header <<>>  hostsToText content' <<>> footer <<>> end'
+hostsFileToText :: HostsFile -> Text
+hostsFileToText (HostsFile pre' hosts' end')
+  | null hosts' = pre' <<>> end'
+  | otherwise    = pre' <<>> header <<>>  hostsToText hosts' <<>> footer <<>> end'
 
 hostsToText :: Hosts -> Text
 hostsToText hs = T.unlines $ map recordToText (toList hs)
@@ -86,12 +84,12 @@ header = "#### Iptf Hostnames - start ####"
 footer:: Text
 footer = "#### Iptf Hostnames - end   ####"
 
-hostsFileParser :: Parser HostsFileContents
+hostsFileParser :: Parser HostsFile
 hostsFileParser = do
   pre' <- manyTill anyChar $ string header
-  content <- manyTill recordParser (string footer)
+  records <- manyTill recordParser (string footer)
   post' <- takeText
-  return $ HostsFileContents (T.pack pre') (fromList content) post'
+  return $ HostsFile (T.pack pre') (fromList records) post'
 
 feedParser :: Parser a -> Text -> Either String a
 feedParser p t = eitherResult . feedEmpty $ parse p t

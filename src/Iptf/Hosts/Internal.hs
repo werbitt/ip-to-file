@@ -20,12 +20,12 @@ newtype Hostname = Hostname Text deriving (Show, Eq, Ord)
 -- a reified entry from Hosts
 data Record = Record IP [Hostname] deriving (Show)
 
--- | HostsFileContents represents an /etc/hosts file. It contains any
+-- | HostsFile represents an /etc/hosts file. It contains any
 -- text before the ip-to-file section. The ip-to-file section represented
 -- as a Hosts, and any text after the ip-to-file section.
-data HostsFileContents = HostsFileContents { pre    :: Text
-                                          , content :: Hosts
-                                          , post    :: Text } deriving (Show, Eq)
+data HostsFile = HostsFile { pre   :: Text
+                           , hosts :: Hosts
+                           , post  :: Text } deriving (Show, Eq)
 
 -- | Modifiable is used to tag whether something has changed or not. This
 -- is used to prevent unneccessary writes to disk.
@@ -47,11 +47,11 @@ ipForHostname n (Hosts h) = go $ Map.toList h
                      then Just k
                      else go xs
 
-updateHfc :: HostsFileContents -> IP -> Hostname -> Modifiable HostsFileContents
-updateHfc (HostsFileContents pre' content' end') ip name =
-  case update content' name ip of
-    Changed h -> Changed $ HostsFileContents pre' h end'
-    Same _ -> Same $ HostsFileContents pre' content' end'
+updateHostsFile :: HostsFile -> IP -> Hostname -> Modifiable HostsFile
+updateHostsFile (HostsFile pre' hosts' end') ip name =
+  case update hosts' name ip of
+    Changed h -> Changed $ HostsFile pre' h      end'
+    Same _    -> Same    $ HostsFile pre' hosts' end'
 
 update :: Hosts -> Hostname -> IP -> Modifiable Hosts
 update hs n ip
