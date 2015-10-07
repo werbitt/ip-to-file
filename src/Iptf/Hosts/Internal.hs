@@ -35,13 +35,20 @@ hostname t
   | otherwise  = Just $ Hostname t
 
 
-ipForHostname :: Hostname -> Hosts -> Maybe IP
-ipForHostname n (Hosts h) = go $ Map.toList h
+getIP :: Hostname -> Hosts -> Maybe IP
+getIP n (Hosts h) = go $ Map.toList h
   where
     go [] = Nothing
     go ((k, v):xs) = if S.member n v
                      then Just k
                      else go xs
+
+getIP' :: Hostname -> Hosts -> Maybe IP
+getIP' n (Hosts h) = case Map.keys filtered of
+  []    -> Nothing
+  x:_   -> Just x
+  where
+    filtered = Map.filter (S.member n) h
 
 updateHostsFile :: HostsFile -> IP -> Hostname -> Changeable HostsFile
 updateHostsFile (HostsFile pre' hosts' end') ip name =
@@ -51,9 +58,9 @@ updateHostsFile (HostsFile pre' hosts' end') ip name =
 
 update :: Hosts -> Hostname -> IP -> Changeable Hosts
 update hs n ip
-  | hostnameExists hs n && pure ip == ipForHostname n hs = Same hs
-  | hostnameExists hs n                                  =  Changed . add ip [n] $ remove n hs
-  | otherwise                                            =  Changed $ add ip [n] hs
+  | hostnameExists hs n && pure ip == getIP n hs = Same hs
+  | hostnameExists hs n                          =  Changed . add ip [n] $ remove n hs
+  | otherwise                                    =  Changed $ add ip [n] hs
 
 empty :: Hosts
 empty = Hosts  Map.empty
