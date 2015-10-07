@@ -20,6 +20,7 @@ library
                       , Iptf.Hosts.IO
                       , Iptf.Ip
                       , Iptf.Ip.Internal
+                      , Data.Changeable
   build-depends:        text >= 1.1.1.3
                       , async >= 2.0.1.6
                       , attoparsec >= 0.12.1.2

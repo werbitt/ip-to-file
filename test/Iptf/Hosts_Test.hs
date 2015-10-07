@@ -5,6 +5,7 @@
 module Iptf.Hosts_Test where
 
 import           Control.Applicative   ((<$>), (<*>))
+import           Data.Changeable       (Changeable (..))
 import qualified Data.Map.Strict       as Map
 import           Data.Maybe            (fromJust)
 import           Data.Monoid           ((<>))
@@ -85,7 +86,7 @@ instance Arbitrary Text where
 instance Arbitrary HostsFile where
   arbitrary = HostsFile <$> arbitrary <*> arbitrary <*> arbitrary
 
-unwrap :: Modifiable a -> a
+unwrap :: Changeable a -> a
 unwrap (Same x)    = x
 unwrap (Changed x) = x
 
