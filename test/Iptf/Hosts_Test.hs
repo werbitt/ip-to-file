@@ -114,4 +114,4 @@ prop_header_for_content :: HostsFile -> Property
 prop_header_for_content hf = withHosts hf ==> length headerLines == 1
   where
     headerLines = filter (== header) (lines $ hostsFileToText hf)
-    withhosts h = not . null $ hosts h
+    withHosts h = not . null $ hosts h
