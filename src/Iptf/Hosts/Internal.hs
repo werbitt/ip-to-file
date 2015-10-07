@@ -3,6 +3,7 @@
 module Iptf.Hosts.Internal where
 
 import           Control.Applicative (pure)
+import           Data.Changeable     (Changeable (..))
 import qualified Data.Map.Strict     as Map
 import qualified Data.Set            as S
 import           Data.Text           (Text)
@@ -27,11 +28,6 @@ data HostsFile = HostsFile { pre   :: Text
                            , hosts :: Hosts
                            , post  :: Text } deriving (Show, Eq)
 
--- | Modifiable is used to tag whether something has changed or not. This
--- is used to prevent unneccessary writes to disk.
-data Modifiable a = Same a | Changed a deriving (Show)
-
-
 -- | Smart constructor for Hostname, doesn't allow blanks.
 hostname :: Text -> Maybe Hostname
 hostname t
@@ -47,13 +43,13 @@ ipForHostname n (Hosts h) = go $ Map.toList h
                      then Just k
                      else go xs
 
-updateHostsFile :: HostsFile -> IP -> Hostname -> Modifiable HostsFile
+updateHostsFile :: HostsFile -> IP -> Hostname -> Changeable HostsFile
 updateHostsFile (HostsFile pre' hosts' end') ip name =
   case update hosts' name ip of
     Changed h -> Changed $ HostsFile pre' h      end'
     Same _    -> Same    $ HostsFile pre' hosts' end'
 
-update :: Hosts -> Hostname -> IP -> Modifiable Hosts
+update :: Hosts -> Hostname -> IP -> Changeable Hosts
 update hs n ip
   | hostnameExists hs n && pure ip == ipForHostname n hs = Same hs
   | hostnameExists hs n                                  =  Changed . add ip [n] $ remove n hs
