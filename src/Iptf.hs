@@ -1,8 +1,8 @@
 module Iptf
        (
-         updateHostsFile
+         updateHosts
        , ipFromWeb
        ) where
 
-import           Iptf.Hosts (updateHostsFile)
+import           Iptf.Hosts (updateHosts)
 import           Iptf.Ip    (IP, ipFromWeb)

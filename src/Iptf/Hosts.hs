@@ -1,6 +1,6 @@
 module Iptf.Hosts
        (
-         updateHostsFile
+         updateHosts
        , Hostname
        , hostname
        ) where
@@ -10,8 +10,8 @@ import           Iptf.Hosts.Internal (Hostname, Modifiable (..), hostname,
 import           Iptf.Hosts.IO       (readHosts, writeHosts)
 import           Iptf.Ip.Internal    (IP)
 
-updateHostsFile :: IP -> Hostname -> FilePath -> IO ()
-updateHostsFile ip name file = do
+updateHosts :: IP -> Hostname -> FilePath -> IO ()
+updateHosts ip name file = do
   hosts <- readHosts file
   case hosts of
     Right h -> case updateHfc h ip name of
