@@ -5,6 +5,7 @@ module Iptf.Hosts
        , hostname
        ) where
 
+import           Data.Changeable     (Changeable (..))
 import           Iptf.Hosts.Internal (Hostname, hostname, updateHostsFile)
 import           Iptf.Hosts.IO       (readHosts, writeHosts)
 import           Iptf.Ip.Internal    (IP)
