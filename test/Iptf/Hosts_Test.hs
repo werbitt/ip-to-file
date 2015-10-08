@@ -1,15 +1,10 @@
-{-# LANGUAGE FlexibleInstances    #-}
-{-# LANGUAGE OverloadedStrings    #-}
-{-# LANGUAGE TypeSynonymInstances #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Iptf.Hosts_Test where
 
-import           Control.Applicative   ((<$>), (<*>))
 import           Data.Changeable       (Changeable (..))
-import qualified Data.Map.Strict       as Map
-import           Data.Maybe            (fromJust)
-import           Data.Monoid           ((<>))
-import           Data.Text             (Text, lines, pack)
+import           Data.Text             (Text, lines)
+import           Iptf.Arbitrary
 import           Iptf.Hosts.Internal
 import           Iptf.Hosts.IO         (header, hostsFileToText, hostsToText)
 import           Iptf.Ip.Internal
@@ -34,7 +29,6 @@ tests = testGroup "Tests" [
       testProperty "Updating is idempotent" prop_idempotent_add
       ]
   ]
-
 
 removeSoloHostTest :: Assertion
 removeSoloHostTest = assertEqual "Removing last host for an IP"
@@ -64,27 +58,6 @@ hostsToTextTest = assertEqual
                   "1.2.3.4\tfoo\n"
                   (hostsToText $ fromList [Record (IP 1 2 3 4) [Hostname "foo"]])
 
-instance Arbitrary Hostname where
-  arbitrary = do
-    name <- resize 10 $ listOf1 (choose ('a', 'z'))
-    return $ fromJust $ hostname (pack name <> ".global")
-
-instance Arbitrary IP where
-  arbitrary = do
-    [a, b, c, d] <- vector 4
-    return $  IP a b c d
-
-instance Arbitrary Record where
-  arbitrary = Record <$> arbitrary <*> (resize 20 $ listOf arbitrary)
-
-instance Arbitrary Hosts where
-  arbitrary = resize 20 $ fromList <$> listOf arbitrary
-
-instance Arbitrary Text where
-  arbitrary = pack <$> arbitrary
-
-instance Arbitrary HostsFile where
-  arbitrary = HostsFile <$> arbitrary <*> arbitrary <*> arbitrary
 
 unwrap :: Changeable a -> a
 unwrap (Same x)    = x

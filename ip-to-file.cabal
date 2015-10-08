@@ -48,8 +48,10 @@ executable ip-to-file
 test-suite ip-to-file-test
   type:                 exitcode-stdio-1.0
   hs-source-dirs:       test
+                      , iptf-arbitrary/src
   main-is:              Spec.hs
   other-modules:        Iptf.Hosts_Test
+                      , Iptf.Arbitrary
   build-depends:        base
                       , ip-to-file
                       , HUnit
